@@ -1,14 +1,17 @@
 //
-//  ViewController.swift
+//  JokesViewController.swift
 //  DadJokes-VIPER
 //
 //  Created by Dian Maisara on 30/10/26.
 //
 
+
 import UIKit
 
-class ViewController: UIViewController {
+class JokesViewController: UIViewController, JokesViewProtocol{
     
+    var presenter: JokesPresenterProtocol?
+
     private let stackView = UIStackView()
     private var setupLabel = UILabel()
     private let whatButton = UIButton(type: .system)
@@ -17,24 +20,33 @@ class ViewController: UIViewController {
     private var dadJokeImage = UIImageView()
     private var newJokeGesture: UITapGestureRecognizer!
     private var feedbackAlert = UIAlertController(title: "So...", message: "You like the joke or not?", preferredStyle: .alert)
-    private var currentJokeIndex = 0
     private let delayInSeconds = 5.0
-    
-    let jokes = [
-        Joke(setup: "What did the boy band that plays classical music name themselves?", punchline: "The Bach Street Boys..."),
-        Joke(setup: "Why did the cow start taking singing lessons?", punchline: "To be a moo-sician!"),
-        Joke(setup: "What do you call a musician with problems?", punchline: "A trebled individual."),
-        Joke(setup: "What does a sword sound like?", punchline: "A little bit sharp")
-    ]
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        
+
         setupElements()
         setupLayout()
         setupGestures()
-        
+
+        presenter?.viewDidLoad()
+    }
+
+    // MARK: JokesViewProtocol (Presenter -> View)
+    func showJoke(setup: String, punchline: String, isPunchlineVisible: Bool) {
+        setupLabel.text = setup
+        punchlineLabel.text = punchline
+        refactoredToggles(punchlineStatus: !isPunchlineVisible,
+                          buttonStatus: !isPunchlineVisible,
+                          gestureStatus: isPunchlineVisible,
+                          continueStatus: !isPunchlineVisible)
+    }
+
+    func showMessage(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
     
     private func setupElements() {
@@ -46,14 +58,12 @@ class ViewController: UIViewController {
         dadJokeImage.accessibilityLabel = "Old Singaporean Uncle Laughing"
         
         // Setup labels
-        setupLabel.text = jokes[currentJokeIndex].setup //"Setup goes here"
         setupLabel.font = .systemFont(ofSize: 26)
         setupLabel.textColor = .black
         setupLabel.textAlignment = .center
         setupLabel.translatesAutoresizingMaskIntoConstraints = false
         setupLabel.numberOfLines = 0
         
-        punchlineLabel.text = jokes[currentJokeIndex].punchline //"Punchline goes here"
         punchlineLabel.font = .systemFont(ofSize: 24)
         punchlineLabel.textColor = .red
         punchlineLabel.textAlignment = .center
@@ -78,13 +88,7 @@ class ViewController: UIViewController {
         
         // Setup alert
         feedbackAlert.addAction(UIAlertAction(title: "Pa...", style: .cancel) { [weak self] _ in
-            guard let self = self else { return }
-
-            self.currentJokeIndex = (self.currentJokeIndex + 1) % self.jokes.count
-            self.setupLabel.text = self.jokes[self.currentJokeIndex].setup
-            self.punchlineLabel.text = self.jokes[self.currentJokeIndex].punchline
-            
-            refactoredToggles(punchlineStatus: true, buttonStatus: true, gestureStatus: false, continueStatus: true)
+            self?.presenter?.didTapNext()
         })
         
         // Setup view
@@ -126,9 +130,8 @@ class ViewController: UIViewController {
     
     // reveal the punchline
     @objc private func whatButtonPressed() {
-        
-        refactoredToggles(punchlineStatus: false, buttonStatus: false, gestureStatus: true, continueStatus: false)
-        
+        presenter?.didTapShowPunchline()
+
 //        DispatchQueue.main.asyncAfter(deadline: .now() + delayInSeconds {
 //            [weak self] in self?.present(feedbackAlert, animated: true)
 //        }
@@ -151,6 +154,6 @@ class ViewController: UIViewController {
 }
 
 #Preview {
-    ViewController()
+    JokesViewController()
 }
 

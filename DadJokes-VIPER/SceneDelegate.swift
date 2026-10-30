@@ -17,7 +17,15 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = UINavigationController(rootViewController: ViewController())
+        // TODO: Use data persistence and store/load in JSON, if time allows
+        let jokes = [
+            Joke(setup: "What did the boy band that plays classical music name themselves?", punchline: "The Bach Street Boys..."),
+            Joke(setup: "Why did the cow start taking singing lessons?", punchline: "To be a moo-sician!"),
+            Joke(setup: "What do you call a musician with problems?", punchline: "A trebled individual."),
+            Joke(setup: "What does a sword sound like?", punchline: "A little bit sharp")
+        ]
+        let jokesVC = JokesRouter.createJokesModule(jokes: jokes)
+        window?.rootViewController = UINavigationController(rootViewController: jokesVC)
         window?.makeKeyAndVisible()
     }
 
